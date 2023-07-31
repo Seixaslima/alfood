@@ -4,13 +4,14 @@ import style from './ListaRestaurantes.module.scss';
 import Restaurante from './Restaurante';
 import axios from 'axios';
 import { IPaginacao } from '../../interfaces/IPaginacao';
-import { Button } from '@mui/material';
-import { MdArrowBackIosNew, MdArrowForwardIos } from "react-icons/md";
+import { Button, TextField } from '@mui/material';
+import { MdArrowBackIosNew, MdArrowForwardIos, MdSearch } from "react-icons/md";
 
 const ListaRestaurantes = () => {
   const [restaurantes, setRestaurantes] = useState<IRestaurante[]>([])
   const [proximaPagina, setProximaPagina] = useState("");
   const [paginaAnterior, setPaginaAnterior] = useState("")
+  const [pesquisa, setPesquisa] = useState("")
 
   useEffect(() => {
     carregarDados('http://localhost:8000/api/v1/restaurantes/')
@@ -26,11 +27,40 @@ const ListaRestaurantes = () => {
       .catch(error => console.log(error))
   }
 
+  function pesquisar() {
+    axios.get<IPaginacao<IRestaurante>>('http://localhost:8000/api/v1/restaurantes/', {
+      params: {
+        ordering: 'nome',
+        search: pesquisa
+      }
+    })
+      .then(resposta => {
+        setRestaurantes(resposta.data.results)
+        setProximaPagina(resposta.data.next)
+        setPaginaAnterior(resposta.data.previous)
+      })
+  }
+
 
 
   return (
     <section className={style.ListaRestaurantes}>
       <h1>Os restaurantes mais <em>bacanas</em>!</h1>
+      <form className={style.pesquisa} onSubmit={evento => {
+        evento.preventDefault()
+        pesquisar()
+      }}>
+        <TextField
+          fullWidth
+          label="Busque por um restaurante"
+          variant="outlined"
+          value={pesquisa}
+          onChange={e => setPesquisa(e.target.value)}
+        />
+        <Button type='submit'>
+          <MdSearch size={30} />
+        </Button>
+      </form>
       {restaurantes?.map(item => <Restaurante restaurante={item} key={item.id} />)}
       {paginaAnterior &&
         <Button startIcon={<MdArrowBackIosNew />} onClick={() => carregarDados(paginaAnterior)}>
