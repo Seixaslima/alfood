@@ -4,7 +4,7 @@ import style from './ListaRestaurantes.module.scss';
 import Restaurante from './Restaurante';
 import axios from 'axios';
 import { IPaginacao } from '../../interfaces/IPaginacao';
-import { Button, TextField } from '@mui/material';
+import { Button, InputLabel, MenuItem, Select, TextField } from '@mui/material';
 import { MdArrowBackIosNew, MdArrowForwardIos, MdSearch } from "react-icons/md";
 
 const ListaRestaurantes = () => {
@@ -12,6 +12,7 @@ const ListaRestaurantes = () => {
   const [proximaPagina, setProximaPagina] = useState("");
   const [paginaAnterior, setPaginaAnterior] = useState("")
   const [pesquisa, setPesquisa] = useState("")
+  const [ordenacao, setOrdenacao] = useState("none")
 
   useEffect(() => {
     carregarDados('http://localhost:8000/api/v1/restaurantes/')
@@ -30,7 +31,7 @@ const ListaRestaurantes = () => {
   function pesquisar() {
     axios.get<IPaginacao<IRestaurante>>('http://localhost:8000/api/v1/restaurantes/', {
       params: {
-        ordering: 'nome',
+        ordering: ordenacao,
         search: pesquisa
       }
     })
@@ -57,20 +58,34 @@ const ListaRestaurantes = () => {
           value={pesquisa}
           onChange={e => setPesquisa(e.target.value)}
         />
+        <Select
+          value={ordenacao}
+          label="Ordenacao"
+          onChange={e => setOrdenacao(e.target.value)}
+        >
+          <MenuItem value="none"> Nenhuma </MenuItem>
+          <MenuItem value="nome"> Nome </MenuItem>
+          <MenuItem value="id"> ID </MenuItem>
+
+        </Select>
         <Button type='submit'>
           <MdSearch size={30} />
         </Button>
       </form>
       {restaurantes?.map(item => <Restaurante restaurante={item} key={item.id} />)}
-      {paginaAnterior &&
+      {
+        paginaAnterior &&
         <Button startIcon={<MdArrowBackIosNew />} onClick={() => carregarDados(paginaAnterior)}>
           Pagina anterior
-        </Button>}
-      {proximaPagina &&
+        </Button>
+      }
+      {
+        proximaPagina &&
         <Button endIcon={<MdArrowForwardIos />} onClick={() => carregarDados(proximaPagina)}>
           Proxima página
-        </Button>}
-    </section>)
+        </Button>
+      }
+    </section >)
 }
 
 export default ListaRestaurantes
